@@ -1,0 +1,54 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  <section class="glass-panel pixel-border p-6 flex flex-wrap items-center justify-between gap-4">
+    <div class="space-y-2">
+      <p class="uppercase text-xs tracking-[0.4em] text-slate-400">Classifica</p>
+      <h2 class="text-2xl font-semibold">Leaderboard globale</h2>
+      <p class="text-sm text-slate-300">Classifica dei migliori giocatori per punteggio totale.</p>
+    </div>
+    <button
+      type="button"
+      (click)="load()"
+      class="rounded-full border border-amber-400/40 px-4 py-2 text-xs uppercase tracking-[0.3em] text-amber-200"
+    >
+      Aggiorna
+    </button>
+  </section>
+
+  <section class="glass-panel pixel-border p-6" *ngIf="!isLoading; else loadingState">
+    <p *ngIf="errorMessage" class="text-sm text-rose-300">{{ errorMessage }}</p>
+
+    <div *ngIf="!errorMessage" class="overflow-x-auto">
+      <table class="min-w-[900px] w-full text-sm text-slate-200">
+        <thead class="text-xs uppercase tracking-[0.3em] text-slate-400">
+          <tr class="border-b border-slate-700/50">
+            <th class="py-3 text-left">#</th>
+            <th class="py-3 text-left">Player</th>
+            <th class="py-3 text-right">Totale</th>
+            <th *ngFor="let category of categories" class="py-3 text-right">{{ category.label }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let entry of entries; let i = index"
+            class="border-b border-slate-800/40 hover:bg-slate-800/30"
+          >
+            <td class="py-3 text-left font-semibold text-amber-200">{{ i + 1 }}</td>
+            <td class="py-3 text-left">
+              <a [routerLink]="['/users', entry.id]" class="text-amber-200 hover:underline">
+                {{ entry.name }}
+              </a>
+            </td>
+            <td class="py-3 text-right font-semibold">{{ entry.totalScore | number }}</td>
+            <td *ngFor="let category of categories" class="py-3 text-right">
+              {{ scoreFor(entry, category.key) | number }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="glass-panel pixel-border p-6">Caricamento classifica...</div>
+</ng-template>

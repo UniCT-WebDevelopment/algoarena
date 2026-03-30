@@ -1,0 +1,426 @@
+
+@use '@angular/material' as mat;
+
+@import 'jointjs/dist/joint.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+:root {
+  font-family: 'Poppins', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  --page-bg: #0f172a;
+  --page-bg-gradient: linear-gradient(135deg, #0f172a, #111827 60%, #312e81);
+  --text: #e2e8f0;
+  --text-strong: #f8fafc;
+  --text-soft: rgba(226, 232, 240, 0.85);
+  --text-muted: rgba(148, 163, 184, 0.8);
+  --surface-strong: rgba(15, 23, 42, 0.8);
+  --surface: rgba(15, 23, 42, 0.7);
+  --surface-card: rgba(15, 23, 42, 0.6);
+  --surface-soft: rgba(15, 23, 42, 0.5);
+  --surface-chip: rgba(15, 23, 42, 0.55);
+  --border-subtle: rgba(148, 163, 184, 0.25);
+  --border-soft: rgba(148, 163, 184, 0.35);
+  --border: rgba(148, 163, 184, 0.4);
+  --border-strong: rgba(148, 163, 184, 0.5);
+  --panel-shadow: 0 10px 40px rgba(15, 23, 42, 0.5);
+  --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+  --hint-bg: rgba(248, 250, 252, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.75);
+  --input-border: rgba(148, 163, 184, 0.4);
+  --scrollbar-track: #0b1120;
+  --scrollbar-thumb: #312e81;
+  --scrollbar-thumb-hover: #4f46e5;
+}
+
+:root.theme-light {
+  background-color: #ffffff;
+  color: #0f172a;
+  --page-bg: #ffffff;
+  --page-bg-gradient: #ffffff;
+  --text: #0f172a;
+  --text-strong: #0f172a;
+  --text-soft: #0f172a;
+  --text-muted: #0f172a;
+  --surface-strong: #ffffff;
+  --surface: #ffffff;
+  --surface-card: #ffffff;
+  --surface-soft: #ffffff;
+  --surface-chip: #ffffff;
+  --border-subtle: rgba(148, 163, 184, 0.55);
+  --border-soft: rgba(148, 163, 184, 0.65);
+  --border: rgba(148, 163, 184, 0.75);
+  --border-strong: rgba(100, 116, 139, 0.8);
+  --panel-shadow: none;
+  --card-shadow: none;
+  --hint-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: rgba(148, 163, 184, 0.75);
+  --scrollbar-track: #e2e8f0;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--page-bg-gradient);
+  color: var(--text);
+}
+
+
+:root.theme-light body {
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light body * {
+  color: #0f172a !important;
+}
+
+:root.theme-light body .rb-button,
+:root.theme-light body .rb-button * {
+  color: #ffffff !important;
+}
+
+:root.theme-light body .monaco-editor,
+:root.theme-light body .monaco-editor * {
+  color: revert !important;
+}
+
+/* Light mode: neutralize dark container backgrounds across pages. */
+:root.theme-light body .glass-panel,
+:root.theme-light body .glass-panel-inner,
+:root.theme-light body [class*='panel'],
+:root.theme-light body [class*='card'],
+:root.theme-light body [class*='stage'],
+:root.theme-light body [class*='canvas'] {
+  background: #ffffff !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* Removed overly broad light-mode overrides that caused layout/scroll issues. */
+
+:root.theme-light body input::placeholder,
+:root.theme-light body textarea::placeholder {
+  color: #0f172a !important;
+  opacity: 0.7;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+
+.arena-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  min-height: calc(100vh - 160px);
+}
+
+.tree-panel {
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tree-stage {
+  position: relative;
+  border-radius: 1.2rem;
+  border: 1px dashed var(--border-soft);
+  background: var(--surface-strong);
+  min-height: 420px;
+  overflow: hidden;
+  cursor: grab;
+  flex: 1;
+}
+
+.tree-stage:active {
+  cursor: grabbing;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.task-pill {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.task-pill .icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.task-pill.active {
+  border-color: rgba(251, 191, 36, 0.8);
+  transform: translateX(4px);
+}
+
+.task-pill.done {
+  border-color: rgba(34, 197, 94, 0.7);
+  opacity: 0.7;
+}
+
+.actions {
+  border: 1px dashed var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--surface-card);
+}
+
+.action-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.history-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.manipulation button {
+  width: 100%;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+  color: #0f172a;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.65rem;
+}
+
+.secondary-btn {
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.property-row {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.property-row.pass {
+  border-color: rgba(34, 197, 94, 0.7);
+  color: #bbf7d0;
+}
+
+.hint {
+  font-size: 0.85rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--hint-bg);
+  border: 1px dashed rgba(251, 191, 36, 0.5);
+  color: #fcd34d;
+}
+
+.pill-outline {
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  font-size: 0.65rem;
+  color: rgba(196, 181, 253, 0.95);
+  background: transparent;
+  cursor: pointer;
+}
+
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.pixel-border {
+  border-image: linear-gradient(45deg, #38bdf8, #a855f7, #f97316) 1;
+  border-width: 2px;
+  border-style: solid;
+}
+
+:root.theme-light .pixel-border {
+  border-image: linear-gradient(45deg, #93c5fd, #c4b5fd, #fdba74) 1;
+}
+
+:root.theme-light body .glass-panel-inner {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text);
+}
+
+:root.theme-light body .hint-panel,
+:root.theme-light body .hint-text,
+:root.theme-light body .tree-stage,
+:root.theme-light body .task-pill,
+:root.theme-light body .actions,
+:root.theme-light body .property-row,
+:root.theme-light body .graph-canvas,
+:root.theme-light body .edge-chip,
+:root.theme-light body .metric-card,
+:root.theme-light body .orbit-core {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: #0f172a;
+}
+
+:root.theme-light .text-slate-100 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-slate-200 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-slate-300 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-slate-400 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-slate-500 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-slate-600 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-amber-200 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light .text-rose-200 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:root.theme-light [class~="border-amber-400/30"] {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+:root.theme-light [class~="hover:bg-amber-300/10"]:hover {
+  background-color: rgba(245, 158, 11, 0.12);
+}
+
+:root.theme-light [class~="border-white/5"] {
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+:root.theme-light [class~="bg-slate-900/50"] {
+  background-color: rgba(226, 232, 240, 0.9);
+}
+
+:root.theme-light [class~="bg-slate-900/30"] {
+  background-color: rgba(226, 232, 240, 0.7);
+}
+
+:root.theme-light [class~="bg-slate-950/40"] {
+  background-color: rgba(226, 232, 240, 0.9);
+}
+
+:root.theme-light [class~="border-slate-600/60"] {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+:root.theme-light .border-slate-600 {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+:root.theme-light .border-slate-700 {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+:root.theme-light [class~="border-slate-800/40"] {
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+:root.theme-light [class~="hover:bg-slate-800/30"]:hover {
+  background-color: rgba(226, 232, 240, 0.8);
+}
+
+:root.theme-light [class~="bg-slate-900/50"].text-slate-100 {
+  color: #0f172a;
+}

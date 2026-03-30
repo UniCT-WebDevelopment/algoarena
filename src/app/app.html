@@ -1,0 +1,85 @@
+<div class="min-h-screen flex flex-col text-slate-100">
+  <header class="app-header glass-panel mx-4 mt-4 px-6 py-4 rounded-2xl flex items-center justify-between gap-5">
+    <div class="header-left">
+      <img src="/algo_arena.png" alt="Algo Arena logo" class="brand-logo" />
+      <div>
+        <p class="uppercase text-xs tracking-[0.5em] text-slate-400">Algo-Arena</p>
+        <h1 class="text-lg font-semibold">Sfida la complessità e affina la logica.</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <ng-container *ngIf="user$ | async as user; else guestLinks">
+        <div class="nav-select-wrapper">
+          <select
+            class="nav-select"
+            [value]="selectedNavRoute"
+            (change)="onNavSelect($event)"
+            aria-label="Vai alla pagina"
+          >
+            <option value="" disabled>Seleziona pagina</option>
+            <option *ngFor="let link of navLinks" [value]="link.route">{{ link.label }}</option>
+          </select>
+        </div>
+        <nav class="nav-pills text-sm">
+          <a
+            *ngFor="let link of navLinks"
+            [routerLink]="link.route"
+            routerLinkActive="bg-amber-400 text-black-important"
+            [routerLinkActiveOptions]="link.route === '/' ? { exact: true } : { exact: false }"
+            class="px-4 py-2 rounded-full border border-amber-400/30 text-amber-200 hover:bg-amber-300/10 transition-colors"
+            >{{ link.label }}</a
+          >
+        </nav>
+        <div class="user-area text-sm">
+          <span class="text-slate-300">
+            Ciao,
+            <a [routerLink]="['/users', user.id]" class="text-amber-200 hover:underline">
+              <strong>{{ user.name }}</strong>
+            </a>
+          </span>
+          <button
+            type="button"
+            (click)="logout()"
+            class="px-4 py-2 rounded-full border border-amber-400/30 text-amber-200 hover:bg-amber-300/10 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      </ng-container>
+      <ng-template #guestLinks>
+        <div class="guest-links flex items-center gap-2 text-sm">
+          <a
+            routerLink="/login"
+            routerLinkActive="bg-amber-400 text-black"
+            class="px-4 py-2 rounded-full border border-amber-400/30 text-amber-200 hover:bg-amber-300/10 transition-colors"
+            >Login</a
+          >
+          <a
+            routerLink="/register"
+            routerLinkActive="bg-amber-400 text-black"
+            class="px-4 py-2 rounded-full border border-amber-400/30 text-amber-200 hover:bg-amber-300/10 transition-colors"
+            >Registrati</a
+          >
+        </div>
+      </ng-template>
+      <button
+        type="button"
+        class="theme-toggle"
+        [class.is-light]="isLightMode"
+        (click)="toggleTheme()"
+        [attr.aria-pressed]="isLightMode"
+        [attr.aria-label]="isLightMode ? 'Attiva dark mode' : 'Attiva light mode'"
+        [title]="isLightMode ? 'Dark mode' : 'Light mode'"
+      >
+        <span class="theme-icon" aria-hidden="true">{{ isLightMode ? '☀️' : '🌙' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 px-4 md:px-10 py-8">
+    <router-outlet />
+  </main>
+
+  <app-assistant-chat />
+  <app-security-challenge />
+</div>

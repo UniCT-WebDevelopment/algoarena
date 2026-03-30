@@ -1,0 +1,178 @@
+<div class="arena-layout gap-6 lg:grid-cols-[2fr_1fr]">
+  <section class="builder-panel glass-panel pixel-border p-6 space-y-4">
+    <div class="flex flex-wrap justify-between gap-4 items-center">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.35em] text-slate-400">Huffman Arena</p>
+        <h2 class="text-2xl font-semibold">Costruisci l'albero di Huffman</h2>
+        <p class="text-sm text-slate-400">
+          {{ totalCharacters }} caratteri totali · collega i nodi e assegna i pesi 0/1 agli archi.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.3em]">
+        <button class="pill-outline" (click)="resetExercise(true)">Reset</button>
+        <button class="pill-outline" (click)="undo()" [disabled]="!undoStack.length">Ctrl+Z</button>
+        <button class="pill-outline" (click)="redo()" [disabled]="!redoStack.length">Ctrl+Shift+Z</button>
+      </div>
+    </div>
+
+    <div class="huffman-stage rounded-2xl border border-slate-700/60 bg-slate-950/40">
+      <div class="joint-wrapper" #canvas></div>
+    </div>
+
+    <div class="controls glass-panel-inner space-y-4">
+      <div class="parent-panel flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
+        <div>
+          <p class="font-semibold">Pannello nodo padre</p>
+          <p class="text-xs text-slate-400">
+            {{
+              selectedGeneratedParent
+                ? (selectedGeneratedParent.label ? selectedGeneratedParent.label + ' · ' : '') + selectedGeneratedParent.value
+                : 'Nessun nodo padre selezionato'
+            }}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="primary-btn" (click)="mergeSelection()" [disabled]="!canMerge">Collega selezione</button>
+          <button class="secondary-btn" (click)="autoLayoutTree()" [disabled]="!nodes.length">Formatta albero</button>
+          <button class="primary-btn" *ngIf="canExportSnapshot" (click)="exportHuffmanSummary()" [disabled]="!canExportSnapshot">
+            Esporta SVG
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="childrenOfSelectedParent.length" class="edge-weights space-y-2">
+        <p class="text-xs uppercase tracking-[0.3em] text-amber-200">Pesi archi (0/1)</p>
+        <div class="grid sm:grid-cols-2 gap-2">
+          <div
+            class="edge-row"
+            *ngFor="let child of childrenOfSelectedParent"
+          >
+            <span class="font-semibold">{{ child.label || 'Nodo interno' }}</span>
+            <div class="edge-actions">
+              <button
+                class="pill-outline"
+                [class.active]="child.edgeWeight === '0'"
+                (click)="setEdgeWeight(child.id, '0')"
+              >
+                0
+              </button>
+              <button
+                class="pill-outline"
+                [class.active]="child.edgeWeight === '1'"
+                (click)="setEdgeWeight(child.id, '1')"
+              >
+                1
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-400 ms-2 mb-2" *ngIf="message">{{ message }}</p>
+    </div>
+  </section>
+
+  <section class="side-panel flex flex-col gap-4">
+    <div class="glass-panel pixel-border p-5 space-y-3 huffman-card">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Lettere e frequenze</h3>
+        <span class="text-xs uppercase tracking-[0.3em] text-slate-500">Input</span>
+      </div>
+      <table class="freq-table">
+        <thead>
+          <tr>
+            <th>Lettera</th>
+            <th>Frequenza</th>
+            <th>Codice</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let letter of leaves">
+            <td>{{ letter.symbol }}</td>
+            <td>{{ letter.frequency }}</td>
+            <td>
+              <input
+                type="text"
+                class="code-input"
+                [ngClass]="codeInputClass(letter.symbol)"
+                [(ngModel)]="letterCodes[letter.symbol]"
+                (ngModelChange)="queueDraftSync()"
+                maxlength="12"
+                placeholder="es. 010"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="flex flex-wrap gap-2 text-xs">
+        <button class="primary-btn" (click)="submitCodes()">Verifica codici</button>
+        <button
+          type="button"
+          class="hint-toggle"
+          [attr.aria-pressed]="hintState.codes"
+          (click)="toggleHint('codes')"
+          aria-label="Suggerimento"
+          title="Suggerimento"
+        >
+          ?
+        </button>
+      </div>
+      <p class="hint-text" *ngIf="hintState.codes">
+        Suggerimento: ogni passaggio verso sinistra assegna 0, verso destra assegna 1. Parti dalla radice e prosegui
+        fino ai simboli.
+      </p>
+    </div>
+
+    <div class="glass-panel pixel-border p-5 space-y-3 huffman-card">
+      <h3 class="text-lg font-semibold">Calcolo dei bit</h3>
+      <div class="grid gap-3">
+        <label class="bit-field">
+          <span>Bit con Huffman</span>
+          <input
+            type="number"
+            [ngClass]="bitInputClass('huffmanBits')"
+            [(ngModel)]="userBits.huffmanBits"
+            (ngModelChange)="queueDraftSync()"
+            placeholder="es. 6000"
+          />
+        </label>
+        <label class="bit-field">
+          <span>Bit a lunghezza fissa</span>
+          <input
+            type="number"
+            [ngClass]="bitInputClass('fixedBits')"
+            [(ngModel)]="userBits.fixedBits"
+            (ngModelChange)="queueDraftSync()"
+            placeholder="es. 6300"
+          />
+        </label>
+        <label class="bit-field">
+          <span>Risparmio totale</span>
+          <input
+            type="number"
+            [ngClass]="bitInputClass('savings')"
+            [(ngModel)]="userBits.savings"
+            (ngModelChange)="queueDraftSync()"
+            placeholder="es. 300"
+          />
+        </label>
+      </div>
+      <div class="flex flex-wrap gap-2 text-xs">
+        <button class="primary-btn" (click)="submitBitAnswers()">Verifica calcoli</button>
+        <button
+          type="button"
+          class="hint-toggle"
+          [attr.aria-pressed]="hintState.bits"
+          (click)="toggleHint('bits')"
+          aria-label="Suggerimento"
+          title="Suggerimento"
+        >
+          ?
+        </button>
+      </div>
+      <p class="hint-text" *ngIf="hintState.bits">
+        Suggerimento: Fixed-length = ⌈log₂(n simboli)⌉ · N. Huffman = Σ freq(lettera) · lunghezza codice.
+      </p>
+    </div>
+  </section>
+</div>

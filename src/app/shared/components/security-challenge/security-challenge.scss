@@ -1,0 +1,109 @@
+.challenge-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.challenge-shell {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.challenge-card {
+  width: min(100%, 420px);
+  padding: 1.4rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background:
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 45%),
+    rgba(15, 23, 42, 0.96);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
+}
+
+.challenge-kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.challenge-card h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  color: #f8fafc;
+}
+
+.challenge-copy {
+  margin: 0.75rem 0 0;
+  color: rgba(226, 232, 240, 0.92);
+  line-height: 1.55;
+}
+
+.challenge-widget {
+  margin-top: 1rem;
+  min-height: 74px;
+  display: grid;
+  place-items: center;
+  border-radius: 1rem;
+  border: 1px dashed rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 1rem;
+}
+
+.challenge-loading {
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 0.92rem;
+}
+
+.turnstile-host {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.turnstile-host.is-hidden {
+  display: none;
+}
+
+.challenge-error {
+  margin: 0.85rem 0 0;
+  color: #fda4af;
+  font-size: 0.92rem;
+}
+
+.challenge-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.challenge-actions .pill-outline {
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  background: transparent;
+  color: rgba(196, 181, 253, 0.95);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.challenge-actions .pill-outline.muted {
+  border-color: rgba(148, 163, 184, 0.35);
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.challenge-actions .pill-outline:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

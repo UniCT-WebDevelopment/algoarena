@@ -1,0 +1,200 @@
+<div class="graph-lab glass-panel pixel-border p-6 space-y-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.4em] text-slate-400">Graph Lab</p>
+      <h2 class="text-2xl font-semibold">Shortest Path Trainer</h2>
+      <p class="text-sm text-slate-400">Genera un grafo, scegli l'algoritmo e compila le tabelle.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.25em]">
+      <button class="pill-outline" (click)="generateGraph()">Rigenera</button>
+      <button
+        class="pill-outline"
+        *ngFor="let algo of algorithms"
+        [class.active]="algorithm === algo"
+        (click)="setAlgorithm(algo)"
+      >
+        {{ algo }}
+      </button>
+      <button
+        type="button"
+        class="hint-toggle"
+        [attr.aria-pressed]="showHints"
+        (click)="toggleHints()"
+        title="Suggerimenti"
+      >
+        ?
+      </button>
+    </div>
+  </header>
+
+  <section class="glass-panel-inner controls-grid">
+    <div>
+      <p class="label">Sorgente</p>
+      <select class="select" [(ngModel)]="sourceId" (change)="onSourceChange()" [disabled]="algorithm === 'floyd'">
+        <option *ngFor="let n of nodes" [ngValue]="n.id">{{ n.label }}</option>
+      </select>
+    </div>
+    <div>
+      <p class="label">Nodi</p>
+      <p class="value">{{ nodes.length }}</p>
+      <p class="helper">Archi generati coerenti con l'algoritmo scelto.</p>
+    </div>
+    <div *ngIf="showHints">
+      <p class="label">Suggerimenti</p>
+      <ul class="hint-list">
+        <li *ngFor="let hint of hintList()">{{ hint }}</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="answer-panel glass-panel-inner" *ngIf="algorithm === 'bellman'">
+    <p class="label">Note Bellman-Ford (solo supporto visivo)</p>
+    <table class="grid-table helper-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Numero (sx)</th>
+          <th>Lettera (dx)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let n of nodes">
+          <th>{{ n.label }}</th>
+          <td>
+            <input type="text" class="input" [(ngModel)]="bellmanLeft[n.id]" placeholder="es. 1" />
+          </td>
+          <td>
+            <input type="text" class="input" [(ngModel)]="bellmanRight[n.id]" placeholder="es. B" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="graph-view glass-panel-inner">
+    <div #graphCanvas class="graph-canvas"></div>
+    <div class="edge-list">
+      <p class="label">Archi (peso)</p>
+      <div class="edge-chip" *ngFor="let e of edges">{{ edgeLabel(e) }}</div>
+    </div>
+  </section>
+
+  <section class="answer-panel glass-panel-inner" *ngIf="algorithm !== 'floyd'">
+    <p class="label">Distanze e predecessori finali</p>
+    <table class="grid-table">
+      <thead>
+        <tr>
+          <th>Nodo</th>
+          <th>Distanza</th>
+          <th>Predecessore</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let n of nodes">
+          <th>{{ n.label }}</th>
+          <td>
+            <input
+              type="text"
+              class="input"
+              [(ngModel)]="userDist[n.id]"
+              (ngModelChange)="queueDraftSync()"
+              [class.error]="errors[n.id]"
+              placeholder="es. 5"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              class="input"
+              [(ngModel)]="userPred[n.id]"
+              (ngModelChange)="queueDraftSync()"
+              [class.error]="errors[n.id + '-pred']"
+              placeholder="es. A"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="answer-panel glass-panel-inner" *ngIf="algorithm === 'floyd'">
+    <p class="label">Matrici A_k e P_k (Floyd-Warshall)</p>
+    <div class="floyd-rows">
+      <div class="floyd-row" *ngFor="let stage of userFloydStages; let k = index; trackBy: trackByIndex">
+        <div class="floyd-matrix">
+          <div class="floyd-title">A{{ k }}</div>
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th *ngFor="let n of nodes">{{ n.label }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of stage; let i = index; trackBy: trackByIndex">
+                <th>{{ nodes[i].label }}</th>
+                <td *ngFor="let val of row; let j = index; trackBy: trackByIndex">
+                  <ng-container *ngIf="k === 0; else editableCell">
+                    {{ val === INF ? '∞' : val }}
+                  </ng-container>
+                  <ng-template #editableCell>
+                    <div class="floyd-cell">
+                      <input
+                        type="text"
+                        class="input"
+                        [value]="displayFloydValue(val)"
+                        (input)="onFloydStageInput(k, i, j, $any($event.target).value)"
+                      />
+                      <button
+                        type="button"
+                        class="inf-btn"
+                        title="Inserisci ∞"
+                        (click)="setFloydInfinity(k, i, j)"
+                      >
+                        ∞
+                      </button>
+                    </div>
+                  </ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="floyd-matrix">
+          <div class="floyd-title">P{{ k }}</div>
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th *ngFor="let n of nodes">{{ n.label }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of userFloydParentStages[k]; let i = index; trackBy: trackByIndex">
+                <th>{{ nodes[i].label }}</th>
+                <td *ngFor="let val of row; let j = index; trackBy: trackByIndex">
+                  <ng-container *ngIf="k === 0; else editableParentCell">
+                    {{ displayParentValue(floydParentStages[k][i][j]) }}
+                  </ng-container>
+                  <ng-template #editableParentCell>
+                    <input
+                      type="text"
+                      class="input parent-input"
+                      [value]="val"
+                      (input)="onFloydParentInput(k, i, j, $any($event.target).value)"
+                    />
+                  </ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="actions flex flex-wrap gap-3 items-center">
+    <button class="primary-btn" (click)="validate()">Verifica</button>
+    <p class="text-sm" [class.text-red-300]="hasErrors" [class.text-emerald-200]="!hasErrors">{{ feedback }}</p>
+  </section>
+</div>

@@ -1,0 +1,479 @@
+<div class="arena-layout gap-6 lg:grid-cols-[2fr_1fr]">
+  <section class="tree-panel glass-panel pixel-border p-6 space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Red-Black Arena</p>
+        <h2 class="text-2xl font-semibold">{{ tasks[activeTaskIndex]?.description }}</h2>
+        <!-- <p class="text-sm text-slate-400 max-w-xl">{{ tasks[activeTaskIndex].description }}</p> -->
+      </div>
+    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+      <button class="pill-outline history-trigger" (click)="toggleHistoryPanel()">Timeline Step</button>
+      <button class="pill-outline" (click)="resetScenario()">Reset</button>
+      <button class="pill-outline" (click)="newScenario()">Nuovo</button>
+    </div>
+    </div>
+
+    <div class="build-helper glass-panel-inner" *ngIf="isBuildTask">
+      <p class="text-sm text-slate-300">Array esercizio (radice evidenziata):</p>
+      <div class="build-sequence flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="build-chip px-2 py-1 text-xs rounded border border-slate-600 bg-slate-900/50 text-slate-200"
+          *ngFor="let value of buildSequence; let idx = index"
+          [class.used]="isBuildValueUsed(value)"
+          [class.selected]="isBuildValueSelected(value)"
+        >
+          {{ value }}
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+        <span>Seleziona un valore e posizionalo tramite l'albero.</span>
+        <button class="pill-outline text-xs" *ngIf="!root && buildSequence.length" (click)="placeBuildRoot()">
+          Posiziona radice {{ buildSequence[0] }}
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="tree-stage"
+      #treeStage
+      (pointerdown)="startPan($event)"
+      (wheel)="handleWheel($event)"
+      (click)="handleCanvasClick($event)"
+    >
+      <div class="tree-content" [style.transform]="treeTransform">
+        <div class="tree-paper" #treeCanvas></div>
+        <ng-container *ngIf="nodeOverlays.length; else emptyTree">
+        <div
+          class="overlay-node"
+          [class.menu-open]="selected?.id === node.id"
+          *ngFor="let node of nodeOverlays"
+          [style.left.px]="node.left"
+          [style.top.px]="node.top"
+          [class.selected]="selected?.id === node.id"
+          [class.double-black]="isDoubleBlackNode(node.id)"
+        >
+          <div class="overlay-node-inner">
+            <button
+              type="button"
+              class="rb-button"
+              [class.red]="node.color === 'red'"
+              (click)="selectById(node.id)"
+            >
+              <span class="rb-value">{{ node.value }}</span>
+            </button>
+            <div class="node-actions" [class.visible]="selected?.id === node.id">
+            <button
+              type="button"
+              class="node-action"
+              (click)="insertById(node.id, 'left'); $event.stopPropagation()"
+              title="Inserisci figlio sinistro"
+            >
+              L+
+            </button>
+            <button
+              type="button"
+              class="node-action"
+              (click)="insertById(node.id, 'right'); $event.stopPropagation()"
+              title="Inserisci figlio destro"
+            >
+              R+
+            </button>
+            <button
+              type="button"
+              class="node-action"
+              (click)="rotateById(node.id, 'left'); $event.stopPropagation()"
+              title="Rotazione sinistra"
+            >
+              ↺
+            </button>
+            <button
+              type="button"
+              class="node-action"
+              (click)="rotateById(node.id, 'right'); $event.stopPropagation()"
+              title="Rotazione destra"
+            >
+              ↻
+            </button>
+            <button
+              type="button"
+              class="node-action"
+              (click)="toggleById(node.id); $event.stopPropagation()"
+              title="Cambia colore"
+            >
+              🎨
+            </button>
+            <button
+              type="button"
+              class="node-action danger"
+              (click)="deleteById(node.id); $event.stopPropagation()"
+              title="Rimuovi nodo"
+            >
+              ✖
+            </button>
+            </div>
+          </div>
+          <span
+            class="double-black-label tooltip"
+            *ngIf="isDoubleBlackNode(node.id)"
+            data-tooltip="Double Black"
+            >DB</span
+          >
+          <span
+            class="double-black-tag tag-x tooltip"
+            *ngIf="isXNode(node.id)"
+            data-tooltip="X: nodo che prende il posto eliminato"
+            >X</span
+          >
+          <span
+            class="double-black-tag tag-w tooltip"
+            *ngIf="isWNode(node.id)"
+            data-tooltip="W: fratello di X"
+            >W</span
+          >
+          <span
+            class="double-black-tag tag-p tooltip"
+            *ngIf="isParentNode(node.id)"
+            data-tooltip="P: padre di X e W"
+            >P</span
+          >
+        </div>
+          <div
+            class="nil-overlay"
+            *ngFor="let nil of nilOverlays"
+            [style.left.px]="nil.left"
+            [style.top.px]="nil.top"
+            [class.double-black]="isDoubleBlackNil(nil)"
+          >
+            <span>NIL</span>
+            <span
+              class="double-black-label tooltip"
+              *ngIf="isDoubleBlackNil(nil)"
+              data-tooltip="Double Black"
+              >DB</span
+            >
+            <span
+              class="double-black-tag tag-x tooltip"
+              *ngIf="isXNil(nil)"
+              data-tooltip="X: nodo NIL (doppio nero)"
+              >X</span
+            >
+          </div>
+        </ng-container>
+      </div>
+      <ng-template #emptyTree>
+        <p class="text-center text-slate-500 text-sm p-8">Posiziona la radice per iniziare.</p>
+      </ng-template>
+
+      <ng-container *ngIf="previousHistoryStep as prevStep">
+        <div
+          class="mini-preview"
+          [class.expanded]="miniPreviewExpanded"
+          [style.top.px]="miniPreviewExpanded ? 16 : miniPreviewFloating ? miniPreviewPosition?.y ?? 16 : 16"
+          [style.left.px]="miniPreviewExpanded ? 16 : miniPreviewFloating ? miniPreviewPosition?.x ?? 16 : null"
+          [style.right.px]="miniPreviewExpanded ? 16 : miniPreviewFloating ? null : 16"
+          [style.bottom.px]="miniPreviewExpanded ? 16 : null"
+          (pointerdown)="startMiniPreviewDrag($event)"
+        >
+          <div class="mini-preview-header">
+            <div>
+              <p class="mini-preview-label">Step precedente</p>
+            </div>
+            <div class="mini-preview-controls">
+              <button
+                type="button"
+                class="mini-btn"
+                (pointerdown)="$event.stopPropagation()"
+                (click)="resetMiniPreviewZoom(); $event.stopPropagation()"
+              >
+                ↺
+              </button>
+              <button
+                type="button"
+                class="mini-btn"
+                (pointerdown)="$event.stopPropagation()"
+                (click)="toggleMiniPreviewExpand(); $event.stopPropagation()"
+              >
+                {{ miniPreviewExpanded ? '↙' : '⤢' }}
+              </button>
+            </div>
+          </div>
+          <div
+            class="mini-preview-body"
+            [class.placeholder]="!prevStep.previewDataUrl"
+            (wheel)="handleMiniPreviewWheel($event)"
+          >
+            <ng-container *ngIf="prevStep.previewDataUrl; else miniPreviewPlaceholder">
+              <div
+                class="mini-preview-image"
+                (pointerdown)="startMiniPreviewImageDrag($event)"
+                [style.transform]="'translate(' + miniPreviewPan.x + 'px,' + miniPreviewPan.y + 'px) scale(' + miniPreviewZoom + ')'"
+              >
+                <img [src]="prevStep.previewDataUrl" alt="Anteprima step precedente" />
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #miniPreviewPlaceholder>
+        <p>Anteprima non disponibile</p>
+      </ng-template>
+      <ng-template #miniPreviewEmpty>
+        <div class="mini-preview mini-preview--empty">
+          <p class="mini-preview-label">Timeline</p>
+          <p class="mini-preview-title text-slate-300">Nessuno step precedente</p>
+        </div>
+      </ng-template>
+    </div>
+  </section>
+
+  <section class="side-panel flex flex-col gap-4">
+    <!-- <div class="glass-panel pixel-border p-5 space-y-3">
+      <div class="flex flex-wrap justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Scenario</p>
+          <h3 class="text-lg font-semibold">{{ currentScenario.title }}</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="pill-outline" (click)="resetScenario()">Reset</button>
+          <button class="pill-outline" (click)="newScenario()">Nuovo</button>
+        </div>
+      </div>
+      <p class="hint" *ngIf="message">{{ message }}</p>
+    </div> -->
+
+    <div class="glass-panel pixel-border p-5 space-y-3">
+      <h3 class="text-lg font-semibold">Roadmap esercizio</h3>
+      <div class="task-list max-h-64 overflow-auto pr-1">
+        <div
+          class="task-pill"
+          *ngFor="let task of tasks; let index = index"
+          [class.active]="index === activeTaskIndex"
+          [class.done]="task.completed"
+        >
+          <span class="icon">{{ task.type === 'insert' ? '➕' : task.type === 'delete' ? '➖' : '🧱' }}</span>
+          <div>
+            <p class="font-semibold">Passo {{ index + 1 }} · {{ task.description }}</p>
+            <small class="text-slate-400" *ngIf="task.type !== 'build'">
+              Valore: {{ task.value }}
+            </small>
+            <div class="build-chip-list flex flex-wrap items-center gap-1 text-xs text-slate-400" *ngIf="task.type === 'build'">
+              <span class="text-xs text-slate-500 mr-1">Array:</span>
+              <span
+                class="px-2 py-0.5 rounded border border-slate-700 bg-slate-900/30"
+                *ngFor="let value of task.sequence || []; let idx = index"
+                [class.root]="idx === 0"
+              >
+                {{ value }}
+              </span>
+            </div>
+          </div>
+          <button
+            class="pill-outline task-download"
+            *ngIf="task.completed && hasHistoryForTask(index)"
+            (click)="downloadTaskHistory(index)"
+          >
+            Scarica step
+          </button>
+        </div>
+      </div>
+      <!-- <div class="actions" *ngIf="currentTask as task">
+        <p class="text-xs uppercase tracking-[0.3em] text-amber-200">Task attuale</p>
+        <p class="text-lg font-semibold">{{ task.description }}</p>
+        <ng-container [ngSwitch]="task.type">
+          <div *ngSwitchCase="'insert'" class="action-grid">
+            <button class="primary-btn" *ngIf="!root" (click)="placeRoot()">
+              Posiziona {{ task.value }} come radice
+            </button>
+            <div *ngIf="root">
+              <p class="text-xs text-slate-400">Seleziona il nodo padre e scegli lo slot:</p>
+              <div class="flex flex-wrap gap-2">
+                <button class="primary-btn" (click)="addNodeAtSelection('left')">Figlio sinistro</button>
+                <button class="primary-btn" (click)="addNodeAtSelection('right')">Figlio destro</button>
+              </div>
+            </div>
+          </div>
+          <div *ngSwitchCase="'delete'" class="action-grid">
+            <p class="text-xs text-slate-400">Seleziona il nodo {{ task.value }} e conferma la cancellazione.</p>
+            <button class="primary-btn" (click)="deleteSelectedNode()">Elimina nodo selezionato</button>
+          </div>
+        </ng-container>
+      </div> -->
+    </div>
+
+    <!-- <div class="glass-panel pixel-border p-5 space-y-3">
+      <h3 class="text-lg font-semibold">Strumenti & Undo</h3>
+      <div class="history-controls">
+        <button class="secondary-btn" (click)="undo()" [disabled]="!undoStack.length">↩ Undo (Ctrl+Z)</button>
+        <button class="secondary-btn" (click)="redo()" [disabled]="!redoStack.length">↪ Redo (Ctrl+Shift+Z)</button>
+        <button class="secondary-btn" (click)="manualDeleteSelected()">Elimina nodo selezionato</button>
+      </div>
+      <div class="manipulation grid gap-3 sm:grid-cols-2">
+        <button class="secondary-btn" (click)="toggleColor()">Toggle colore</button>
+        <button class="secondary-btn" (click)="rotateLeft()">Rotazione ↺</button>
+        <button class="secondary-btn" (click)="rotateRight()">Rotazione ↻</button>
+        <button class="secondary-btn" (click)="runValidation()">Verifica manuale</button>
+      </div>
+    </div> -->
+
+    <div class="glass-panel pixel-border p-5 space-y-3">
+      <h3 class="text-lg font-semibold">Checker Proprietà</h3>
+      <ul class="space-y-3">
+        <li class="property-row" [class.pass]="validation?.property1">
+          Proprietà 1: ogni nodo è rosso o nero
+        </li>
+        <li class="property-row" [class.pass]="validation?.property2">
+          Proprietà 2: la radice è nera
+        </li>
+        <li class="property-row" [class.pass]="validation?.property3">
+          Proprietà 3: NIL neri
+        </li>
+        <li class="property-row" [class.pass]="validation?.property4">
+          Proprietà 4: Nessun rosso con figlio rosso
+        </li>
+        <li class="property-row" [class.pass]="bstValid">
+          Proprietà BST: Ordinamento rispettato
+        </li>
+        <li class="property-row" [class.pass]="validation?.property5">
+          Proprietà 5: Altezza nera uniforme
+        </li>
+      </ul>
+
+      <div class="space-y-2">
+        <h4 class="text-base font-semibold">Issues</h4>
+        <p class="text-sm text-slate-400" *ngIf="!validation || validation.issues.length === 0">
+          Nessuna violazione rilevata. Continua così! 🎉
+        </p>
+        <ul class="list-disc list-inside text-sm text-rose-200" *ngIf="validation?.issues?.length">
+          <li *ngFor="let issue of validation?.issues">{{ issue }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- <div class="glass-panel pixel-border p-5 space-y-3 history-panel">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold">Timeline Step</h3>
+        <button class="pill-outline" (click)="toggleHistoryPanel()">
+          {{ historyCollapsed ? 'Mostra' : 'Nascondi' }}
+        </button>
+      </div>
+      <div *ngIf="!historyCollapsed; else historyHidden">
+        <div class="flex items-center justify-between text-sm text-slate-400" *ngIf="timelineSteps.length">
+          <span>Step registrati: {{ timelineSteps.length }}</span>
+          <button class="pill-outline text-xs" (click)="downloadAllHistory()" [disabled]="!timelineSteps.length">
+            Scarica tutti
+          </button>
+        </div>
+        <ng-container *ngIf="timelineSteps.length; else emptyHistory">
+          <div class="history-grid">
+            <div class="history-card" *ngFor="let step of timelineSteps; let idx = index">
+              <div class="history-card-header">
+                <p class="font-semibold text-xs truncate">{{ step.label }}</p>
+                <small class="text-[10px] text-slate-400">{{ step.timestamp | date: 'HH:mm:ss' }}</small>
+              </div>
+              <div class="history-preview" *ngIf="step.previewDataUrl; else previewMissing">
+                <img [src]="step.previewDataUrl" alt="Anteprima step {{ idx + 1 }}" />
+              </div>
+              <ng-template #previewMissing>
+                <div class="history-preview placeholder">Anteprima non disponibile</div>
+              </ng-template>
+              <button class="history-download" (click)="downloadHistoryStep(step, idx)" [disabled]="!step.previewDataUrl">
+                Scarica PNG
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+      <ng-template #historyHidden>
+        <p class="text-sm text-slate-500">Mostra il pannello per rivedere gli step eseguiti.</p>
+      </ng-template>
+      <ng-template #emptyHistory>
+        <p class="text-sm text-slate-400">Nessuno step registrato finora.</p>
+      </ng-template>
+    </div> -->
+  </section>
+</div>
+
+<div class="history-drawer" [class.open]="!historyCollapsed">
+  <div class="history-backdrop" (click)="toggleHistoryPanel()"></div>
+  <div class="history-panel">
+    <div class="history-panel-header">
+      <div>
+        <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Timeline</p>
+        <h3 class="text-lg font-semibold text-white">Step eseguiti</h3>
+      </div>
+      <div class="flex gap-2">
+        <button class="pill-outline text-xs" (click)="downloadAllHistory()" [disabled]="!timelineSteps.length">
+          Scarica tutti
+        </button>
+        <button class="pill-outline text-xs" (click)="toggleHistoryPanel()">Chiudi</button>
+      </div>
+    </div>
+    <ng-container *ngIf="timelineSteps.length; else emptyHistoryDrawer">
+      <div class="history-list">
+        <div
+          class="history-card"
+          *ngFor="let step of timelineSteps; let idx = index"
+          (click)="openPreviewModal(step)"
+          [class.clickable]="step.previewDataUrl"
+        >
+          <div class="history-card-header">
+            <div>
+              <p class="text-[11px] uppercase text-slate-400">Step {{ idx + 1 }}</p>
+              <p class="font-semibold text-sm text-white">{{ step.label }}</p>
+            </div>
+            <small class="text-[10px] text-slate-500">{{ step.timestamp | date: 'HH:mm:ss' }}</small>
+          </div>
+          <div class="history-preview" *ngIf="step.previewDataUrl; else previewMissingDrawer">
+            <img [src]="step.previewDataUrl" alt="Anteprima step {{ idx + 1 }}" />
+          </div>
+          <ng-template #previewMissingDrawer>
+            <div class="history-preview placeholder">Anteprima non disponibile</div>
+          </ng-template>
+          <button
+            class="history-download"
+            (click)="downloadHistoryStep(step, idx); $event.stopPropagation()"
+            [disabled]="!step.previewDataUrl"
+          >
+            Scarica PNG
+          </button>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #emptyHistoryDrawer>
+      <p class="text-sm text-slate-400">Nessuno step registrato. Inizia una nuova operazione.</p>
+    </ng-template>
+  </div>
+</div>
+
+<div class="preview-modal" *ngIf="previewModalStep as preview">
+  <div class="modal-backdrop" (click)="closePreviewModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Step</p>
+        <h3 class="text-base font-semibold text-white">{{ preview.label }}</h3>
+      </div>
+      <button class="pill-outline text-xs" type="button" (click)="closePreviewModal()">Chiudi</button>
+    </div>
+    <div class="modal-body" *ngIf="preview.previewDataUrl; else modalPlaceholder">
+      <div class="modal-hint">
+        <span>Usa la rotella o il trackpad per zoomare, trascina per muovere.</span>
+        <button type="button" class="mini-btn" (click)="resetModalView()">Reset</button>
+        <span class="zoom-label">{{ (previewModalZoom * 100) | number : '1.0-0' }}%</span>
+      </div>
+      <div class="modal-image-wrapper" (wheel)="handleModalWheel($event)">
+        <div
+          class="modal-image-inner"
+          (pointerdown)="startModalImageDrag($event)"
+          [style.transform]="'translate(' + previewModalPan.x + 'px,' + previewModalPan.y + 'px) scale(' + previewModalZoom + ')'"
+        >
+          <img [src]="preview.previewDataUrl" alt="Anteprima timeline" />
+        </div>
+      </div>
+    </div>
+    <ng-template #modalPlaceholder>
+      <p class="text-sm text-slate-300 p-6 text-center">Anteprima non disponibile.</p>
+    </ng-template>
+  </div>
+</div>

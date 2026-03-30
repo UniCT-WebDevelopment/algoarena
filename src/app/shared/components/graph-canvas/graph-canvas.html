@@ -1,0 +1,26 @@
+<svg class="graph" viewBox="0 0 500 280">
+  <g class="edges">
+    <ng-container *ngFor="let edge of edges">
+      <line
+        [attr.x1]="getNodeById(edge.from)?.x"
+        [attr.y1]="getNodeById(edge.from)?.y"
+        [attr.x2]="getNodeById(edge.to)?.x"
+        [attr.y2]="getNodeById(edge.to)?.y"
+        class="edge-line"
+      ></line>
+      <text
+        class="edge-weight"
+        [attr.x]="((getNodeById(edge.from)?.x ?? 0) + (getNodeById(edge.to)?.x ?? 0)) / 2"
+        [attr.y]="((getNodeById(edge.from)?.y ?? 0) + (getNodeById(edge.to)?.y ?? 0)) / 2 - 8"
+      >
+        {{ edge.weight }}
+      </text>
+    </ng-container>
+  </g>
+  <g class="nodes">
+    <g *ngFor="let node of nodes" class="node" [ngClass]="getNodeClasses(node.id)">
+      <circle [attr.cx]="node.x" [attr.cy]="node.y" r="28"></circle>
+      <text [attr.x]="node.x" [attr.y]="node.y + 6">{{ node.label }}</text>
+    </g>
+  </g>
+</svg>

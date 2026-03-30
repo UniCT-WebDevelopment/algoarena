@@ -1,0 +1,10 @@
+<div class="glass-panel p-4 rounded-2xl border border-white/5 h-full flex flex-col gap-2">
+  <p class="uppercase text-xs tracking-[0.3em] text-slate-400">{{ label }}</p>
+  <p class="text-2xl font-semibold text-white">{{ value }}</p>
+  <div class="text-sm text-slate-400 flex items-center gap-2" *ngIf="helper">
+    <span>{{ helper }}</span>
+    <span *ngIf="trend" [ngClass]="{'text-emerald-300': trend === 'up', 'text-rose-300': trend === 'down'}">
+      {{ trend === 'up' ? '▲' : trend === 'down' ? '▼' : '•' }}
+    </span>
+  </div>
+</div>

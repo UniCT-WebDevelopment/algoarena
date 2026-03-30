@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.glass-panel {
+  background: linear-gradient(150deg, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.95));
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+
+.glass-panel:hover {
+  transform: translateY(-4px);
+  border-color: rgba(251, 191, 36, 0.7);
+}

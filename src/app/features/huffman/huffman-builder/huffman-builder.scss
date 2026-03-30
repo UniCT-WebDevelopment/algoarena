@@ -1,0 +1,179 @@
+:host {
+  display: block;
+}
+
+.builder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.huffman-stage {
+  height: 520px;
+  padding: 1rem;
+}
+
+.joint-wrapper {
+  width: 100%;
+  height: 480px;
+  cursor: grab;
+}
+
+.joint-wrapper.panning {
+  cursor: grabbing;
+}
+
+.controls {
+  background: rgba(15, 23, 42, 0.45);
+  border-radius: 1.2rem;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+.parent-panel {
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.edge-row {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.edge-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.edge-actions .pill-outline.active {
+  border-color: rgba(124, 58, 237, 0.8);
+  color: #f8fafc;
+  background: rgba(124, 58, 237, 0.2);
+}
+
+.primary-btn,
+.secondary-btn {
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  font-size: 0.65rem;
+}
+
+.huffman-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.freq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.freq-table th,
+.freq-table td {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 0.35rem 0.4rem;
+}
+
+.freq-table th {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.65rem;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.code-input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.75rem;
+  padding: 0.35rem 0.5rem;
+  color: #f8fafc;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
+
+.bit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.bit-field input {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.75rem;
+  padding: 0.4rem 0.5rem;
+  color: #f8fafc;
+}
+
+.code-input.input-valid,
+.bit-field input.input-valid {
+  border-color: rgba(74, 222, 128, 0.9);
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35);
+}
+
+.code-input.input-invalid,
+.bit-field input.input-invalid {
+  border-color: rgba(248, 113, 113, 0.9);
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.25);
+}
+
+.hint-text {
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.9);
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 0.75rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.pill-outline {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  font-size: 0.6rem;
+  color: rgba(196, 181, 253, 0.95);
+}
+
+.hint-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 191, 24, 0.6);
+  background: rgba(15, 23, 42, 0.7);
+  color: rgba(248, 191, 24, 0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.hint-toggle[aria-pressed='true'] {
+  background: rgba(248, 191, 24, 0.2);
+  color: #fbbf24;
+  border-color: rgba(248, 191, 24, 0.8);
+}
+
+:host-context(.theme-light) .code-input,
+:host-context(.theme-light) .bit-field input {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text);
+}
+
+:host-context(.theme-light) .hint-toggle {
+  background: #ffffff;
+  color: #b45309;
+  border-color: rgba(248, 191, 24, 0.8);
+}

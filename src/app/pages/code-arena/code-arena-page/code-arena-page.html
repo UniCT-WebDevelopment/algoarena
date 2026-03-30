@@ -1,0 +1,152 @@
+<div class="code-arena-layout" *ngIf="!isLoading; else loadingState">
+  <section class="glass-panel pixel-border p-4 space-y-4 list-panel">
+    <div>
+      <h2 class="text-lg font-semibold">Code Arena</h2>
+      <p class="text-sm text-slate-300">
+        Scrivi codice C/C++ e valida gli algoritmi con test automatici.
+      </p>
+    </div>
+    <h3 class="text-sm uppercase tracking-[0.3em] text-slate-400">Esercizi</h3>
+    <div class="exercise-grid">
+      <button
+        *ngFor="let exercise of pagedExercises"
+        type="button"
+        (click)="selectExercise(exercise)"
+        class="exercise-card"
+        [ngClass]="[
+          selectedExercise?.id === exercise.id ? 'is-active' : '',
+          isCompleted(exercise) ? 'is-completed' : '',
+          difficultyClass(exercise.difficulty)
+        ]"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p class="text-sm font-semibold text-slate-100">{{ exercise.title }}</p>
+            <p class="text-xs text-slate-400 flex items-center gap-2">
+              <span>{{ exercise.category }}</span>
+              <span class="difficulty-pill" [ngClass]="difficultyClass(exercise.difficulty)">
+                {{ exercise.difficulty }}
+              </span>
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="xp-badge">{{ exercise.points }} XP</span>
+            <span *ngIf="isCompleted(exercise)" class="done-badge" title="Completato">✓</span>
+          </div>
+        </div>
+      </button>
+    </div>
+    <div class="pagination">
+      <button
+        type="button"
+        (click)="prevPage()"
+        [disabled]="currentPage === 1"
+        class="page-btn"
+      >
+        Prev
+      </button>
+      <div class="page-list">
+        <button
+          *ngFor="let page of pageNumbers()"
+          type="button"
+          (click)="goToPage(page)"
+          class="page-number"
+          [ngClass]="page === currentPage ? 'is-active' : ''"
+        >
+          {{ page }}
+        </button>
+      </div>
+      <button
+        type="button"
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="page-btn"
+      >
+        Next
+      </button>
+    </div>
+  </section>
+
+  <section class="glass-panel pixel-border p-6 space-y-3 details-panel" *ngIf="selectedExercise">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h3 class="text-xl font-semibold">{{ selectedExercise.title }}</h3>
+        <p class="text-sm text-slate-300">{{ selectedExercise.description }}</p>
+      </div>
+      <div class="flex gap-2">
+        <button
+          *ngFor="let lang of selectedExercise.languages"
+          type="button"
+          (click)="changeLanguage(lang)"
+          class="px-4 py-2 rounded-full text-xs uppercase tracking-[0.3em] border"
+          [ngClass]="{
+            'bg-amber-400 text-slate-900 border-amber-300': selectedLanguage === lang,
+            'border-amber-300/40 text-amber-100 hover:bg-amber-400/10': selectedLanguage !== lang
+          }"
+        >
+          {{ lang === 'cpp' ? 'C++' : 'C' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 text-sm text-slate-300">
+      <div>
+        <h4 class="font-semibold text-slate-200">Input</h4>
+        <p>{{ selectedExercise.input }}</p>
+      </div>
+      <div>
+        <h4 class="font-semibold text-slate-200">Output</h4>
+        <p>{{ selectedExercise.output }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="glass-panel pixel-border p-6 space-y-4 editor-panel" *ngIf="selectedExercise">
+    <div class="flex items-center justify-between">
+      <h4 class="text-lg font-semibold">Editor</h4>
+      <span class="text-xs uppercase tracking-[0.3em] text-slate-400">{{ selectedLanguage.toUpperCase() }}</span>
+    </div>
+    <div class="editor-shell">
+      <ngx-monaco-editor
+        class="monaco-host"
+        [options]="editorOptions"
+        [(ngModel)]="code"
+      ></ngx-monaco-editor>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        (click)="submit()"
+        [disabled]="isSubmitting"
+        class="rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-900 transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {{ isSubmitting ? 'Valutazione in corso...' : 'Invia soluzione' }}
+      </button>
+      <p *ngIf="errorMessage" class="text-sm text-rose-300">{{ errorMessage }}</p>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="glass-panel pixel-border p-6">Caricamento esercizi...</div>
+</ng-template>
+
+<div
+  *ngIf="submission"
+  class="result-toast"
+  [ngClass]="submission.correct ? 'is-success' : 'is-error'"
+  (click)="closeToast()"
+  #resultToast
+>
+  <div class="result-header">
+    <span class="result-title">Risultato</span>
+    <span class="result-state">{{ submission.correct ? 'Corretto' : 'Errato' }}</span>
+  </div>
+  <p class="result-message">
+    {{ submission.correct ? 'Esercizio completato.' : 'Risposta non corretta.' }}
+  </p>
+  <p class="result-meta">{{ submissionSummary }}</p>
+  <p *ngIf="submission.correct" class="result-points">
+    {{ submission.alreadyCompleted ? 'Punteggio già assegnato.' : 'Hai guadagnato ' + submission.pointsAwarded + ' XP.' }}
+  </p>
+</div>

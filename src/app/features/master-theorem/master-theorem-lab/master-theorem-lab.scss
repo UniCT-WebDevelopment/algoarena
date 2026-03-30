@@ -1,0 +1,324 @@
+.master-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.exercise-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.pseudo-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.pseudo-card {
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.6);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.pseudo-card.active {
+  border-color: rgba(124, 58, 237, 0.8);
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.3);
+}
+
+.pseudo-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pseudo-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.pseudo-body {
+  background: rgba(15, 23, 42, 0.75);
+  border-radius: 0.9rem;
+  padding: 0.8rem 1rem;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
+
+.pseudo-body pre {
+  margin: 0;
+  white-space: pre;
+}
+
+.pseudo-body code {
+  display: block;
+  line-height: 1.5;
+}
+
+.pseudo-footer ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.solve-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.solve-card {
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.65);
+  padding: 1.2rem;
+  display: grid;
+  gap: 1rem;
+  color-scheme: dark;
+}
+
+.formula-line {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.formula-line input,
+.formula-line select {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.7rem;
+  padding: 0.3rem 0.5rem;
+  color: #f8fafc;
+  min-width: 70px;
+}
+
+.formula-line select {
+  min-width: 140px;
+}
+
+.analysis-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analysis-row input,
+.analysis-row select {
+  margin-top: 0.35rem;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.7rem;
+  padding: 0.35rem 0.55rem;
+  color: #f8fafc;
+}
+
+.case-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+}
+
+.analysis-row select option,
+.formula-line select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.analysis-row select,
+.formula-line select {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.value {
+  font-weight: 700;
+}
+
+.case-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.case-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.case-options input[type='radio'] {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pill-outline {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  font-size: 0.6rem;
+  color: rgba(196, 181, 253, 0.95);
+}
+
+.primary-btn {
+  padding: 0.6rem 1.3rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: 0.65rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.hint-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 191, 24, 0.6);
+  background: rgba(15, 23, 42, 0.7);
+  color: rgba(248, 191, 24, 0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hint-toggle[aria-pressed='true'] {
+  background: rgba(248, 191, 24, 0.2);
+  color: #fbbf24;
+  border-color: rgba(248, 191, 24, 0.8);
+}
+
+:host-context(.theme-light) .hint-toggle {
+  background: #ffffff;
+  color: #b45309;
+  border-color: rgba(248, 191, 24, 0.8);
+}
+
+.hint-panel {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+.hint-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.hint-icon {
+  width: 32px;
+  height: 32px;
+  padding-left: 3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.hint-list {
+  display: grid;
+  gap: 0.35rem;
+  color: #e2e8f0;
+  padding-left: 1rem;
+}
+
+:host-context(.theme-light) .pseudo-card {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+
+:host-context(.theme-light) .pseudo-body {
+  background: #ffffff;
+  border-color: var(--border-subtle);
+  color: #0f172a;
+}
+
+:host-context(.theme-light) .pseudo-body code {
+  color: #0f172a;
+}
+
+:host-context(.theme-light) .pseudo-footer ul {
+  color: var(--text-soft);
+}
+
+:host-context(.theme-light) .pseudo-label,
+:host-context(.theme-light) .label {
+  color: var(--text-muted);
+}
+
+:host-context(.theme-light) .solve-card {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text);
+  color-scheme: light;
+}
+
+:host-context(.theme-light) .formula-line input,
+:host-context(.theme-light) .formula-line select,
+:host-context(.theme-light) .analysis-row input,
+:host-context(.theme-light) .analysis-row select {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text);
+}
+
+:host-context(.theme-light) .analysis-row select option,
+:host-context(.theme-light) .formula-line select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+:host-context(.theme-light) .hint-panel {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:host-context(.theme-light) .hint-list {
+  color: var(--text-soft);
+}
+
+@media (min-width: 1024px) {
+  .exercise-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}

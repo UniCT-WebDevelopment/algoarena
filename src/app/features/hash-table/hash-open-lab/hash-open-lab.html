@@ -1,0 +1,158 @@
+<div class="hash-lab glass-panel pixel-border p-6 space-y-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.4em] text-slate-400">Hash Table Lab</p>
+      <h2 class="text-2xl font-semibold">Probing & Probabilità</h2>
+      <p class="text-sm text-slate-400">Imposta gli slot, assegna le frazioni e collega ogni P(i) alla destinazione.</p>
+    </div>
+    <div class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em]">
+      <button class="pill-outline" (click)="generateScenario()">Rigenera esercizio</button>
+      <button class="pill-outline" [class.active]="hasHashFunction" (click)="hasHashFunction = !hasHashFunction; onModeChange()">
+        {{ hasHashFunction ? 'Hash on' : 'Hash off' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="glass-panel-inner controls-grid">
+    <div>
+      <p class="label">Numero slot (m)</p>
+      <div class="flex items-center gap-2">
+        <button class="pill-outline" (click)="removeSlot()">-</button>
+        <input class="slot-input" type="number" [(ngModel)]="tableSize" (change)="onChangeSize()" [min]="minSize" [max]="maxSize" />
+        <button class="pill-outline" (click)="addSlot()">+</button>
+      </div>
+      <p class="helper">Min {{ minSize }} · Max {{ maxSize }}</p>
+    </div>
+
+    <div>
+      <p class="label">Strategia di scanning</p>
+      <p class="value">{{ hasHashFunction ? 'h(k) = (h’(k) + i·' + step + ') mod m' : 'Nessuna h(k), parto dal primo libero successivo' }}</p>
+      <div class="flex items-center gap-3" *ngIf="hasHashFunction">
+        <label class="text-xs text-slate-400">Passo</label>
+        <input class="slot-input" type="number" min="1" [(ngModel)]="step" (change)="onChangeStep()" />
+      </div>
+    </div>
+
+    <div class="summary">
+      <div>
+        <p class="label">Slot liberi</p>
+        <p class="value">{{ freeSlotCount }}</p>
+      </div>
+      <div>
+        <p class="label">Slot occupati</p>
+        <p class="value">{{ lockedSlotCount }}</p>
+      </div>
+      <div>
+        <p class="label">Peso singolo P(i)</p>
+        <p class="value">1 / {{ tableSize }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="actions flex flex-wrap gap-3 items-center">
+    <button class="primary-btn" (click)="validate()">Verifica</button>
+    <button class="pill-outline" type="button" *ngIf="canDownloadSvg && !hasErrors" (click)="downloadSvg()">Scarica SVG</button>
+    <p class="text-sm" [class.text-red-300]="hasErrors" [class.text-emerald-200]="!hasErrors">{{ feedback }}</p>
+  </section>
+
+  <section class="hint-panel glass-panel-inner">
+    <p class="label">Legenda</p>
+    <ul class="hint-list">
+      <li>I chip colorati rappresentano la provenienza P(i) della frazione.</li>
+      <li>Gli slot occupati sono bloccati (X). Lo scanning prova P(i), poi avanza di +passo finché trova un libero.</li>
+      <li>Per essere corretta, la somma delle frazioni deve combaciare con la probabilità attesa e con le P(i) previste.</li>
+    </ul>
+  </section>
+
+
+
+  <section class="slot-grid">
+    <div
+      class="slot-card glass-panel-inner"
+      *ngFor="let slot of slots"
+      [ngClass]="{
+        locked: slot.locked,
+        error: slotErrors[slot.index]
+      }"
+    >
+      <div class="slot-head">
+        <div class="slot-index" [ngStyle]="indexChipStyle(slot.index)">P({{ slot.index }})</div>
+        <div class="slot-actions">
+          <span class="status-chip" [class.free]="!slot.locked" [class.busy]="slot.locked">
+            {{ slot.locked ? 'Occupato' : 'Libero' }}
+          </span>
+          <button class="pill-outline small" (click)="toggleLock(slot)">{{ slot.locked ? 'Sblocca' : 'Blocca' }}</button>
+        </div>
+      </div>
+
+      <div class="expected-block">
+        <div class="expected-toggle">
+          <p class="label">Probabilità attesa</p>
+          <button class="pill-outline small ghost" type="button" (click)="toggleExpected(slot.index)">
+            {{ isExpectedVisible(slot.index) ? 'Nascondi' : 'Mostra' }}
+          </button>
+        </div>
+        <ng-container *ngIf="isExpectedVisible(slot.index)">
+          <div class="expected-row" *ngIf="expectedFractions(slot.index).length; else noExpected">
+            <div class="value">Tot: {{ expected[slot.index]?.sources?.length }}/{{ tableSize }}</div>
+            <div class="sources">
+              <span class="chip" *ngFor="let frac of expectedFractions(slot.index)" [style.background]="colorFor(frac.src)">
+                {{ frac.count }}/{{ tableSize }} da P({{ frac.src }})
+              </span>
+            </div>
+          </div>
+          <ng-template #noExpected>
+            <div class="expected-row sources empty">
+              <span class="chip muted">Nessun contributo atteso</span>
+            </div>
+          </ng-template>
+        </ng-container>
+      </div>
+
+      <div class="contrib-editor">
+        <p class="label">Frazioni inserite</p>
+        <div class="contrib-row" *ngFor="let contrib of slot.contributions; trackBy: trackContrib">
+          <div class="chip tag" [style.background]="contrib.from !== null ? colorFor(contrib.from) : '#1e293b'">
+            {{ contrib.from !== null ? 'da P(' + contrib.from + ')' : 'Seleziona P(i)' }}
+          </div>
+          <select
+            [(ngModel)]="contrib.from"
+            [ngModelOptions]="{ standalone: true }"
+            class="select"
+            (ngModelChange)="onAnswerChange(slot.index)"
+          >
+            <option [ngValue]="null">P(i)</option>
+            <option *ngFor="let idx of slots" [ngValue]="idx.index">P({{ idx.index }})</option>
+          </select>
+          <input
+            type="number"
+            class="fraction-input"
+            [(ngModel)]="contrib.numerator"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="num"
+            (ngModelChange)="onAnswerChange(slot.index)"
+          />
+          <span class="slash">/</span>
+          <input
+            type="number"
+            class="fraction-input"
+            [(ngModel)]="contrib.denominator"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="den"
+            (ngModelChange)="onAnswerChange(slot.index)"
+          />
+          <button class="pill-outline small danger" (click)="removeContribution(slot, contrib.id)">×</button>
+        </div>
+        <button class="pill-outline small" (click)="addContribution(slot)">Aggiungi frazione</button>
+      </div>
+
+      <div class="errors" *ngIf="slotErrors[slot.index]">
+        <p class="label text-red-300">Errori</p>
+        <ul>
+          <li *ngFor="let err of slotErrors[slot.index]">{{ err }}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>

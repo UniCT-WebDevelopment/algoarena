@@ -1,0 +1,72 @@
+<div class="dashboard-shell" *ngIf="user$ | async as user">
+  <section class="hero-panel">
+    <div class="hero-copy">
+      <p class="hero-eyebrow">Mission Control</p>
+      <h2 class="hero-title">Benvenuto, {{ user.name }}</h2>
+      <p class="hero-subtitle">
+        Tieni d'occhio il tuo ranking globale e spingi i punteggi per ogni arena.
+      </p>
+      <div class="hero-metrics">
+        <div class="metric-card">
+          <span class="metric-label">Punteggio totale</span>
+          <span class="metric-value">{{ (user.totalScore ?? 0) | number }}</span>
+          <span class="metric-sub">Totale globale</span>
+        </div>
+        <div class="metric-card accent">
+          <span class="metric-label">Posizione in classifica</span>
+          <span class="metric-value">#{{ (rankInfo$ | async)?.rank ?? '—' }}</span>
+          <span class="metric-sub">
+            su {{ (rankInfo$ | async)?.totalUsers ?? '—' }} player
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-orbit">
+      <div class="orbit-core">
+        <span class="orbit-label">Score</span>
+        <span class="orbit-score">{{ (user.totalScore ?? 0) | number }}</span>
+        <span class="orbit-rank">Rank #{{ (rankInfo$ | async)?.rank ?? '—' }}</span>
+      </div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring ring-secondary"></div>
+    </div>
+  </section>
+
+  <section class="category-grid">
+    <a
+      *ngFor="let card of cards"
+      [routerLink]="card.route"
+      class="category-card"
+    >
+      <div class="category-top">
+        <span class="category-icon">{{ card.icon }}</span>
+        <span class="category-score">
+          {{ (user.categoryScores?.[card.category] ?? 0) | number }}
+        </span>
+      </div>
+      <h3 class="category-title">{{ card.title }}</h3>
+      <p class="category-desc">{{ card.description }}</p>
+      <span class="category-cta">Apri arena</span>
+    </a>
+  </section>
+
+  <section class="featured-panel">
+    <div class="featured-header">
+      <div>
+        <p class="hero-eyebrow">Suggeriti</p>
+        <h3 class="featured-title">Sfide in evidenza</h3>
+      </div>
+      <a class="pill-outline" routerLink="/leaderboard">Leaderboard</a>
+    </div>
+    <div class="featured-grid">
+      <div class="challenge-card" *ngFor="let exercise of featuredExercises">
+        <div>
+          <p class="challenge-tag">{{ exercise.category }}</p>
+          <h4 class="challenge-title">{{ exercise.title }}</h4>
+          <p class="challenge-desc">{{ exercise.description }}</p>
+        </div>
+        <a class="pill-outline" [routerLink]="exercise.route">Avvia</a>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,113 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  <section class="glass-panel pixel-border p-6 flex flex-wrap items-center justify-between gap-6">
+    <div class="space-y-2">
+      <p class="uppercase text-xs tracking-[0.4em] text-slate-400">Profilo utente</p>
+      <h2 class="text-2xl font-semibold">{{ profile?.user?.name || 'Utente' }}</h2>
+      <p class="text-sm text-slate-300">
+        Totale completati: <strong>{{ profile?.user?.completedCount || 0 }}</strong>
+        · Score totale: <strong>{{ profile?.user?.totalScore | number }}</strong>
+      </p>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <span class="label">Tempo medio</span>
+        <span class="value">{{ formatDuration(profile?.stats?.overall?.averageDurationMs) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Errori medi</span>
+        <span class="value">{{ profile?.stats?.overall?.averageErrors | number : '1.0-2' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Tentativi medi</span>
+        <span class="value">{{ profile?.stats?.overall?.averageAttempts | number : '1.0-2' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Punti/min</span>
+        <span class="value">{{ profile?.stats?.overall?.pointsPerMinute | number : '1.0-1' }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="!isLoading; else loadingState" class="grid lg:grid-cols-3 gap-6 profile-panels">
+    <div class="glass-panel pixel-border p-6 lg:col-span-2 profile-panel profile-panel--stats">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Statistiche per categoria</h3>
+        <span class="text-xs uppercase tracking-[0.3em] text-slate-500">Avg</span>
+      </div>
+      <div class="category-grid">
+        <div class="category-card" *ngFor="let category of profile?.stats?.categories">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold">{{ category.label }}</h4>
+            <span class="badge">{{ category.totalCompleted }}</span>
+          </div>
+          <div class="category-row">
+            <span>Tempo medio</span>
+            <strong>{{ formatDuration(category.averageDurationMs) }}</strong>
+          </div>
+          <div class="category-row">
+            <span>Media errori</span>
+            <strong>{{ category.averageErrors | number : '1.0-2' }}</strong>
+          </div>
+          <div class="category-row">
+            <span>Media tentativi</span>
+            <strong>{{ category.averageAttempts | number : '1.0-2' }}</strong>
+          </div>
+          <div class="category-row">
+            <span>Punti totali</span>
+            <strong>{{ category.totalPoints | number }}</strong>
+          </div>
+          <div class="category-row">
+            <span>Fattore qualità</span>
+            <strong>x{{ category.averageMultiplier | number : '1.0-2' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-panel pixel-border p-6 profile-panel profile-panel--recent" style="height: 43.5rem;">
+      <h3 class="text-lg font-semibold mb-4">Ultime completate</h3>
+      <div class="space-y-3 recent-list">
+        <div class="recent-card" *ngFor="let entry of profile?.stats?.recentCompletions">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold">{{ categoryLabel(entry.category) }}</span>
+            <span class="text-xs text-amber-200">+{{ entry.pointsAwarded }}</span>
+          </div>
+          <div class="text-xs text-slate-400">
+            {{ formatDuration(entry.durationMs) }} · errori {{ entry.errors ?? 0 }} · tentativi {{ entry.attempts ?? 1 }}
+          </div>
+          <div class="text-[11px] text-slate-500">
+            {{ formatDate(entry.completedAt) }}
+          </div>
+        </div>
+        <p *ngIf="!profile?.stats?.recentCompletions?.length" class="text-sm text-slate-400">
+          Nessuna completata registrata.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="glass-panel pixel-border p-6" *ngIf="!isLoading">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold">Attività ultimi 14 giorni</h3>
+      <span class="text-xs uppercase tracking-[0.3em] text-slate-500">Daily</span>
+    </div>
+    <div class="activity-grid">
+      <div class="activity-card" *ngFor="let day of profile?.stats?.dailyActivity">
+        <span class="label">{{ day.date }}</span>
+        <span class="value">{{ day.completions }} completate</span>
+        <span class="meta">+{{ day.points | number }} XP</span>
+      </div>
+      <p *ngIf="!profile?.stats?.dailyActivity?.length" class="text-sm text-slate-400">
+        Nessuna attività registrata.
+      </p>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="glass-panel pixel-border p-6">Caricamento statistiche...</div>
+</ng-template>
+
+<div *ngIf="errorMessage" class="max-w-6xl mx-auto text-rose-300 text-sm mt-4">
+  {{ errorMessage }}
+</div>

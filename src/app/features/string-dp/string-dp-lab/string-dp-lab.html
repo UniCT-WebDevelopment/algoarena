@@ -1,0 +1,146 @@
+<div class="dp-layout glass-panel pixel-border p-6 space-y-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.4em] text-slate-400">String DP Lab</p>
+      <h2 class="text-2xl font-semibold">LCS & Edit Distance</h2>
+      <p class="text-sm text-slate-400">Completa la tabella dinamica e traccia il percorso ottimale.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.25em]">
+      <button class="pill-outline" (click)="generateExercise()">Rigenera parole</button>
+      <button class="pill-outline" (click)="setAlgorithm('lcs')" [class.active]="algorithm === 'lcs'">LCS</button>
+      <button class="pill-outline" (click)="setAlgorithm('edit')" [class.active]="algorithm === 'edit'">
+        Edit Distance
+      </button>
+      <button
+        type="button"
+        class="hint-toggle"
+        [attr.aria-pressed]="showHints"
+        (click)="toggleHints()"
+        [title]="algorithm === 'lcs' ? 'Suggerimenti LCS' : 'Suggerimenti Edit Distance'"
+      >
+        ?
+      </button>
+    </div>
+  </header>
+
+  <section class="hint-panel glass-panel-inner" *ngIf="showHints">
+    <div class="hint-header">
+      <span class="hint-icon">?</span>
+      <div>
+        <p class="label">Suggerimenti {{ algorithm === 'lcs' ? 'LCS' : 'Edit Distance' }}</p>
+        <ul class="hint-list">
+          <li *ngFor="let hint of hintList">{{ hint }}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="word-info glass-panel-inner">
+    <div>
+      <p class="label">Parola X</p>
+      <p class="value">{{ wordX }}</p>
+    </div>
+    <div>
+      <p class="label">Parola Y</p>
+      <p class="value">{{ wordY }}</p>
+    </div>
+    <div *ngIf="algorithm === 'edit'">
+      <p class="label">Costo dichiarato</p>
+      <input
+        type="number"
+        class="cost-input"
+        [(ngModel)]="editDistanceAnswer"
+        (ngModelChange)="queueDraftSync()"
+        placeholder="es. 5"
+      />
+    </div>
+  </section>
+
+  <section class="matrix-wrapper">
+    <table class="dp-matrix">
+      <thead>
+        <tr>
+          <th></th>
+          <th
+            class="header-cell purple"
+            [class.highlight]="highlightedCol === 0 || highlightedCol === -1"
+          >
+            Ø
+          </th>
+          <th
+            *ngFor="let char of xChars; let colIndex = index"
+            class="header-cell purple"
+            [class.highlight]="highlightedCol === colIndex + 1"
+          >
+            {{ char }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of matrix; let rowIndex = index">
+          <th
+            class="header-cell purple"
+            [class.highlight]="highlightedRow === rowIndex || (highlightedRow === -1 && rowIndex === 0)"
+          >
+            {{ rowIndex === 0 ? 'Ø' : yChars[rowIndex - 1] }}
+          </th>
+          <td
+            *ngFor="let cell of row; let colIndex = index"
+            (click)="handleCellClick($event, rowIndex, colIndex)"
+            [ngClass]="{
+              locked: cell.locked,
+              path: isCellInPath(rowIndex, colIndex),
+              error: cell.valueError || cell.arrowError
+            }"
+          >
+            <ng-container *ngIf="cell.locked; else editableCell">
+              <span class="value locked-value">{{ cell.value ?? '·' }}</span>
+            </ng-container>
+            <ng-template #editableCell>
+              <div class="cell-editor" (click)="onEditorClick($event, rowIndex, colIndex)">
+                <input
+                  type="number"
+                  [(ngModel)]="cell.value"
+                  (ngModelChange)="onCellChange(rowIndex, colIndex)"
+                  (focus)="setHighlight(rowIndex, colIndex)"
+                  (blur)="clearHighlight()"
+                  [disabled]="pathMode"
+                />
+                <select
+                  [(ngModel)]="cell.arrow"
+                  (ngModelChange)="onCellChange(rowIndex, colIndex)"
+                  (focus)="setHighlight(rowIndex, colIndex)"
+                  (blur)="clearHighlight()"
+                  [disabled]="pathMode"
+                >
+                  <option [ngValue]="null">-</option>
+                  <option value="diag">↖</option>
+                  <option value="up">↑</option>
+                  <option value="left">←</option>
+                </select>
+              </div>
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="path-controls glass-panel-inner">
+    <div>
+      <p class="label">Percorso ottimale</p>
+      <p class="text-sm text-slate-400">Attiva la modalità percorso e clicca le celle dal fondo verso 0,0.</p>
+    </div>
+    <div class="controls">
+      <button class="pill-outline" [class.active]="pathMode" (click)="togglePathMode()" [disabled]="hasErrors">
+        {{ pathMode ? 'Modalità percorso attiva' : 'Attiva modalità percorso' }}
+      </button>
+      <button class="pill-outline" (click)="clearPath()" [disabled]="!pathSelection.length">Reset percorso</button>
+    </div>
+  </section>
+
+  <section class="actions flex flex-wrap gap-3">
+    <button class="primary-btn" (click)="validate()">Verifica</button>
+    <p class="text-sm text-slate-300" *ngIf="feedback">{{ feedback }}</p>
+  </section>
+</div>

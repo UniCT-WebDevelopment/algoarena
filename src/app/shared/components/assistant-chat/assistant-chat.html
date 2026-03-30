@@ -1,0 +1,40 @@
+<div class="chat-launcher">
+  <button type="button" class="chat-toggle" (click)="toggle()">
+    <span class="dot"></span>
+    Tutor AI
+  </button>
+</div>
+
+<div class="chat-panel" *ngIf="isOpen">
+  <div class="chat-header">
+    <div>
+      <p class="chat-title">Tutor algoritmi</p>
+      <p class="chat-subtitle">Le risposte sono generate dall’intelligenza artificiale e potrebbero non essere completamente accurate.</p>
+    </div>
+    <div class="chat-actions">
+      <button type="button" class="chat-icon text" (click)="resetChat()" [disabled]="isLoading" title="Nuova chat">
+        Nuova
+      </button>
+      <button type="button" class="chat-icon" (click)="toggle()">✕</button>
+    </div>
+  </div>
+
+  <div class="chat-body" #chatBody>
+    <div *ngFor="let message of messages" class="chat-message" [ngClass]="message.role">
+      <p>{{ message.content }}</p>
+    </div>
+    <div class="chat-message assistant" *ngIf="isLoading">
+      <p>Sto pensando...</p>
+    </div>
+  </div>
+
+  <form class="chat-input" (ngSubmit)="send()">
+    <input
+      type="text"
+      [(ngModel)]="input"
+      name="question"
+      placeholder="Chiedimi un algoritmo o un dubbio..."
+    />
+    <button type="submit" [disabled]="isLoading || !input.trim()">Invia</button>
+  </form>
+</div>

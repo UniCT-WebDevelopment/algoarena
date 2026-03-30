@@ -1,0 +1,79 @@
+<div class="max-w-xl mx-auto">
+  <section class="glass-panel pixel-border p-8 space-y-6">
+    <div class="space-y-2">
+      <p class="uppercase text-xs tracking-[0.4em] text-slate-400">Registrazione</p>
+      <h2 class="text-2xl font-semibold">Crea il tuo profilo</h2>
+      <p class="text-sm text-slate-300">Salva progressi e sblocca obiettivi persistenti.</p>
+    </div>
+
+    <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="space-y-2">
+        <label class="text-sm text-slate-200">Nome</label>
+        <input
+          type="text"
+          formControlName="name"
+          placeholder="Il tuo nome"
+          class="w-full rounded-xl border border-slate-600/60 bg-slate-900/50 px-4 py-3 text-slate-100 focus:border-amber-400 focus:outline-none"
+        />
+        <p *ngIf="form.controls.name.touched && form.controls.name.invalid" class="text-xs text-rose-300">
+          Inserisci almeno 2 caratteri.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm text-slate-200">Email</label>
+        <input
+          type="email"
+          formControlName="email"
+          placeholder="nome@dominio.com"
+          class="w-full rounded-xl border border-slate-600/60 bg-slate-900/50 px-4 py-3 text-slate-100 focus:border-amber-400 focus:outline-none"
+        />
+        <p *ngIf="form.controls.email.touched && form.controls.email.invalid" class="text-xs text-rose-300">
+          Inserisci un'email valida.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm text-slate-200">Password</label>
+        <input
+          type="password"
+          formControlName="password"
+          placeholder="Minimo 8 caratteri"
+          class="w-full rounded-xl border border-slate-600/60 bg-slate-900/50 px-4 py-3 text-slate-100 focus:border-amber-400 focus:outline-none"
+        />
+        <p *ngIf="form.controls.password.touched && form.controls.password.invalid" class="text-xs text-rose-300">
+          La password deve avere almeno 8 caratteri.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm text-slate-200">Conferma password</label>
+        <input
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="Ripeti la password"
+          class="w-full rounded-xl border border-slate-600/60 bg-slate-900/50 px-4 py-3 text-slate-100 focus:border-amber-400 focus:outline-none"
+        />
+        <p *ngIf="passwordMismatch" class="text-xs text-rose-300">
+          Le password non coincidono.
+        </p>
+      </div>
+
+      <p *ngIf="errorMessage" class="text-sm text-rose-300">{{ errorMessage }}</p>
+
+      <button
+        type="submit"
+        [disabled]="form.invalid || isLoading"
+        class="w-full rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-900 transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {{ isLoading ? 'Registrazione in corso...' : 'Registrati' }}
+      </button>
+    </form>
+
+    <div class="flex items-center justify-between text-sm text-slate-300">
+      <a routerLink="/login" class="text-amber-200 hover:text-amber-100">
+        Hai già un account?
+      </a>
+    </div>
+  </section>
+</div>

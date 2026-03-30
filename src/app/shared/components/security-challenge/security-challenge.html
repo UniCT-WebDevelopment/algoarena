@@ -1,0 +1,27 @@
+<div class="challenge-backdrop" *ngIf="state$ | async as state">
+  <div class="challenge-shell" *ngIf="state.open">
+    <div class="challenge-card">
+      <p class="challenge-kicker">Verifica aggiuntiva</p>
+      <h2>Conferma che la richiesta arriva da un browser reale.</h2>
+      <p class="challenge-copy" *ngIf="state.request as request">
+        Abbiamo rilevato un pattern sospetto su <strong>{{ request.scope }}</strong>. Completa il challenge per continuare.
+      </p>
+
+      <div class="challenge-widget">
+        <div *ngIf="state.loading" class="challenge-loading">Caricamento challenge…</div>
+        <div #widgetHost class="turnstile-host" [class.is-hidden]="state.loading"></div>
+      </div>
+
+      <p class="challenge-error" *ngIf="state.error">{{ state.error }}</p>
+
+      <div class="challenge-actions">
+        <button type="button" class="pill-outline" (click)="retry()" [disabled]="state.loading || state.verifying">
+          Riprova
+        </button>
+        <button type="button" class="pill-outline muted" (click)="cancel()" [disabled]="state.verifying">
+          Annulla
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

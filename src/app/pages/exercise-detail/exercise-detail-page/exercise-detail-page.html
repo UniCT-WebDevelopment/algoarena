@@ -1,0 +1,13 @@
+<div class="glass-panel pixel-border p-6" *ngIf="exercise; else missingExercise">
+  <p class="text-xs uppercase tracking-[0.4em] text-slate-400">{{ exercise.category }}</p>
+  <h1 class="text-3xl font-semibold">{{ exercise.title }}</h1>
+  <p class="text-slate-400">{{ exercise.description }}</p>
+  <div class="mt-4 flex gap-4 text-sm">
+    <span>Difficoltà: {{ exercise.difficulty | titlecase }}</span>
+    <span>Tempo stimato: {{ exercise.estimatedTime }} minuti</span>
+  </div>
+  <a [routerLink]="exercise.route" class="pill-outline inline-flex mt-6">Vai all'esercizio</a>
+</div>
+<ng-template #missingExercise>
+  <p class="text-center text-slate-400">Esercizio non trovato.</p>
+</ng-template>

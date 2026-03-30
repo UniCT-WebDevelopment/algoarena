@@ -1,0 +1,115 @@
+<div class="master-layout glass-panel pixel-border p-6 space-y-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.4em] text-slate-400">Master Lab</p>
+      <h2 class="text-2xl font-semibold">Teorema Master</h2>
+      <p class="text-sm text-slate-400">
+        Analizza i pseudocodici e risolvi la ricorrenza con il teorema master.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.25em]">
+      <button class="pill-outline" (click)="regenerate()">Rigenera esercizi</button>
+      <button class="hint-toggle" type="button" [attr.aria-pressed]="showHints" (click)="toggleHints()">?</button>
+    </div>
+  </header>
+
+  <section class="exercise-grid">
+    <div class="pseudo-panel">
+      <div class="pseudo-card" *ngFor="let exercise of exercises" [ngClass]="{ active: selectedExercise?.id === exercise.id }">
+        <div class="pseudo-header">
+          <div>
+            <p class="pseudo-label">Pseudocodice</p>
+            <h3 class="text-lg font-semibold">{{ exercise.title }}</h3>
+            <p class="text-xs text-slate-400">{{ exercise.description }}</p>
+          </div>
+          <button type="button" class="pill-outline" (click)="selectExercise(exercise)">Seleziona</button>
+        </div>
+        <div class="pseudo-body">
+          <pre><code *ngFor="let line of exercise.pseudocode">{{ line }}
+</code></pre>
+        </div>
+        <div class="pseudo-footer">
+          <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Costi noti</p>
+          <ul>
+            <li *ngFor="let helper of exercise.helpers">
+              {{ helper.name }} → {{ helper.cost }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="solve-panel" *ngIf="selectedExercise as ex">
+      <div class="solve-card">
+        <h3 class="text-lg font-semibold">Imposta la ricorrenza</h3>
+        <div class="formula-line">
+          <span>T(n) =</span>
+          <input type="number" [(ngModel)]="inputA" (ngModelChange)="queueDraftSync()" placeholder="a" />
+          <span>T(n /</span>
+          <input type="number" [(ngModel)]="inputB" (ngModelChange)="queueDraftSync()" placeholder="b" />
+          <span>) +</span>
+          <select [(ngModel)]="selectedFnKey" (ngModelChange)="queueDraftSync()">
+            <option value="">f(n)</option>
+            <option *ngFor="let fn of fnOptions" [value]="fn.key">{{ fn.label }}</option>
+          </select>
+        </div>
+        <div class="analysis-row">
+          <div>
+            <p class="label">n^(log_b a)</p>
+            <input type="text" [(ngModel)]="inputAlpha" (ngModelChange)="queueDraftSync()" placeholder="es. n^1.58" />
+          </div>
+          <div>
+            <p class="label">f(n)</p>
+            <input type="text" [(ngModel)]="inputFn" (ngModelChange)="queueDraftSync()" placeholder="es. n log n" />
+          </div>
+        </div>
+
+        <div class="case-row">
+          <div>
+            <p class="label">Caso</p>
+            <div class="case-options">
+              <label>
+                <input type="radio" name="case" [value]="1" [(ngModel)]="selectedCase" (ngModelChange)="queueDraftSync()" />
+                Caso 1 (f(n) < n^(log_b a))
+              </label>
+              <label>
+                <input type="radio" name="case" [value]="2" [(ngModel)]="selectedCase" (ngModelChange)="queueDraftSync()" />
+                Caso 2 (f(n) = n^(log_b a))
+              </label>
+              <label>
+                <input type="radio" name="case" [value]="3" [(ngModel)]="selectedCase" (ngModelChange)="queueDraftSync()" />
+                Caso 3 (f(n) > n^(log_b a))
+              </label>
+            </div>
+          </div>
+          <div>
+            <p class="label">Complessità finale</p>
+            <select [(ngModel)]="selectedComplexity" (ngModelChange)="queueDraftSync()">
+              <option value="">Seleziona</option>
+              <option *ngFor="let option of ex.complexityOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary-btn" (click)="validate()">Verifica</button>
+          <p class="text-sm" [class.text-red-300]="hasErrors" [class.text-emerald-200]="!hasErrors">{{ feedback }}</p>
+        </div>
+      </div>
+
+      <div class="hint-panel glass-panel-inner" *ngIf="showHints">
+        <div class="hint-header">
+          <span class="hint-icon">?</span>
+          <div>
+            <p class="label">Master Theorem</p>
+            <ul class="hint-list">
+              <li>Calcola n^(log_b a) e confronta con f(n).</li>
+              <li>Caso 1: f(n) = O(n^(log_b a - ε)) → Θ(n^(log_b a)).</li>
+              <li>Caso 2: f(n) = Θ(n^(log_b a) log^k n) → Θ(n^(log_b a) log^(k+1) n).</li>
+              <li>Caso 3: f(n) = Ω(n^(log_b a + ε)) (regolarità) → Θ(f(n)).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

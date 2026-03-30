@@ -1,0 +1,180 @@
+<div class="arena-layout gap-6 lg:grid-cols-[2fr_1fr]">
+  <section class="heap-panel glass-panel pixel-border p-6 space-y-6">
+    <div class="heap-header flex flex-wrap justify-between gap-4">
+      <div class="heap-header-main">
+        <p class="text-[10px] uppercase tracking-[0.3em] text-slate-500">Heap Arena</p>
+        <h2 class="text-xl font-semibold">
+          {{ currentChallenge?.title }}
+        </h2>
+        <p class="text-xs text-slate-400 max-w-2xl">
+          {{ currentChallenge?.description }}
+        </p>
+        <div class="heap-status compact">
+          <span class="status-chip">Passo {{ activeStepIndex }}</span>
+          <span class="status-chip" [class.pass]="currentStep?.heapValid">
+            Heap {{ currentStep?.heapValid ? 'OK' : 'KO' }}
+          </span>
+          <span class="status-chip" [class.pass]="currentStep?.suffixValid">
+            Suffisso {{ currentStep?.suffixValid ? 'OK' : 'KO' }}
+          </span>
+          <span class="status-chip" [class.pass]="currentStep?.completed">
+            {{ currentStep?.completed ? 'Completato ✓' : 'In corso' }}
+          </span>
+          <span class="status-chip" *ngIf="currentChallenge?.mode === 'extract'">
+            Estratti {{ lockedCellsCount }} / {{ currentChallenge?.requiredExtractions }}
+          </span>
+          <span class="status-chip warning" *ngIf="errors">Errori: {{ errors }}</span>
+        </div>
+        <p class="heap-violations text-[11px] text-slate-400" *ngIf="currentStep?.violations?.length">
+          Violazioni sui figli: <span class="text-rose-200 font-semibold">{{ currentStep?.violations?.join(', ') }}</span>
+        </p>
+        <p class="heap-violations text-[11px] text-slate-500" *ngIf="!currentStep?.violations?.length">
+          Nessuna violazione rilevata nel passo attivo.
+        </p>
+      </div>
+      <div class="header-actions flex flex-wrap gap-2 text-[10px] text-slate-400">
+        <button class="pill-outline" (click)="activeChallengeId && startChallenge(activeChallengeId)">Rigenera</button>
+        <button class="pill-outline" (click)="downloadTimelineSvg()" [disabled]="!isChallengeLocked" *ngIf="isChallengeLocked">
+          Download SVG
+        </button>
+        <!-- <button class="pill-outline" (click)="undo()" [disabled]="isChallengeLocked || !undoStack.length">
+          Ctrl+Z
+        </button>
+        <button class="pill-outline" (click)="redo()" [disabled]="isChallengeLocked || !redoStack.length">
+          Ctrl+Shift+Z
+        </button> -->
+      </div>
+    </div>
+
+    <div class="timeline-panel">
+      <div class="timeline-header">
+        <div>
+          <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Timeline</p>
+          <h3 class="text-xl font-semibold">Passaggi registrati</h3>
+        </div>
+        <p class="text-sm text-slate-400">
+          Passo attivo: <span class="text-amber-200 font-semibold">{{ activeStepIndex }}</span>
+        </p>
+      </div>
+
+      <div class="timeline-list">
+        <div
+          class="timeline-card"
+          #timelineCard
+          *ngFor="let step of steps; let stepIndex = index"
+          [class.active]="stepIndex === activeStepIndex"
+          [class.completed]="step.completed"
+        >
+          <div class="timeline-card-header">
+            <div>
+              <p class="text-sm font-semibold">Passo {{ stepIndex }}</p>
+              <p class="text-xs text-slate-400">
+                {{ step.operation || (stepIndex === 0 ? 'Setup iniziale' : 'Modifica manuale') }}
+              </p>
+            </div>
+            <button
+              class="pill-outline"
+              *ngIf="stepIndex !== activeStepIndex"
+              (click)="selectStep(stepIndex)"
+            >
+              Riprendi
+            </button>
+          </div>
+
+          <div class="array-grid" [class.readonly]="stepIndex !== activeStepIndex">
+            <button
+              type="button"
+              class="array-cell"
+              *ngFor="let value of step.array; let cellIndex = index"
+              [ngClass]="{
+                locked: step.locked[cellIndex],
+                violation: !step.locked[cellIndex] && step.violations.includes(cellIndex),
+                selected: stepIndex === activeStepIndex && selectedIndices.includes(cellIndex)
+              }"
+              (click)="stepIndex === activeStepIndex ? toggleSelection(cellIndex) : null"
+            >
+              <span class="cell-index">#{{ cellIndex +1 }}</span>
+              <span class="cell-value">{{ value }}</span>
+              <span class="cell-lock" *ngIf="step.locked[cellIndex]">🔒</span>
+            </button>
+          </div>
+
+          <div class="step-actions" *ngIf="stepIndex === activeStepIndex">
+            <div class="step-action-buttons">
+              <button
+                class="primary-btn"
+                (click)="swapSelected()"
+                [disabled]="isChallengeLocked || selectedIndices.length !== 2"
+              >
+                Swap selezionate
+              </button>
+              <button class="secondary-btn" (click)="swapRootWithTail()" [disabled]="isChallengeLocked">
+               Swap Root ↔ ultima cella
+              </button>
+              <!-- <button class="secondary-btn" (click)="heapifyRoot()" [disabled]="isChallengeLocked">
+                Heapify radice
+              </button> -->
+              <button
+                class="secondary-btn"
+                *ngIf="currentChallenge?.mode !== 'build'"
+                (click)="lockLastActive()"
+                [disabled]="isChallengeLocked"
+              >
+                Blocca ultima cella
+              </button>
+            </div>
+            <p class="text-sm text-slate-300" *ngIf="statusMessage">{{ statusMessage }}</p>
+            <p class="text-xs text-slate-500">
+              Suggerimento: seleziona le celle per effettuare gli swap. Torna a un passo precedente e continua da lì per
+              correggere eventuali errori.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="side-panel flex flex-col gap-4">
+    <div class="glass-panel pixel-border p-5 space-y-3 challenge-section">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Challenge disponibili</h3>
+        <span class="text-xs uppercase tracking-[0.3em] text-slate-500">Heap</span>
+      </div>
+      <div class="challenge-list">
+        <div
+          class="challenge-card"
+          *ngFor="let challenge of challenges"
+          [class.active]="challenge.id === activeChallengeId"
+          [class.done]="challenge.completed"
+        >
+          <div>
+            <p class="font-semibold">{{ challenge.title }}</p>
+            <p class="text-xs text-slate-400">{{ challenge.description }}</p>
+          </div>
+          <div class="challenge-meta">
+            <span class="badge" [class.badge-success]="challenge.valid">
+              {{ challenge.valid ? 'Valido' : 'Da verificare' }}
+            </span>
+            <span class="badge badge-ghost" *ngIf="challenge.completed">Completato</span>
+            <span class="badge badge-info" *ngIf="challenge.mode === 'extract'">
+              Estrai {{ challenge.requiredExtractions ?? '?' }}
+            </span>
+          </div>
+          <div class="challenge-actions">
+            <!-- <span class="text-xs text-slate-500">Modalità: {{ challenge.mode }}</span> -->
+            <button class="pill-outline" (click)="startChallenge(challenge.id)">
+              {{ challenge.id === activeChallengeId ? 'Rigenera' : 'Attiva' }}
+            </button>
+            <button
+              class="pill-outline"
+              *ngIf="challenge.completed"
+              (click)="downloadTimelineSvg(challenge.id)"
+            >
+              Download SVG
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

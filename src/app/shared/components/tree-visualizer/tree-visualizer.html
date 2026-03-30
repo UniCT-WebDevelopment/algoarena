@@ -1,0 +1,7 @@
+<div class="tree-container">
+  <div class="level" *ngFor="let row of levels; let rowIndex = index" [style.marginInline]="rowIndex * 4 + 'px'">
+    <div *ngFor="let node of row" class="node" [ngClass]="{ violation: isViolation(node.index) }">
+      {{ node.value }}
+    </div>
+  </div>
+</div>

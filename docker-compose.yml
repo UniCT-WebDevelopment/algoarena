@@ -1,0 +1,96 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: algo-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: algo-api
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      MONGODB_URI: mongodb://mongo:27017/algo-arena
+      JWT_SECRET: change-me
+      TOKEN_EXPIRES_IN: 7d
+      CLIENT_ORIGIN: http://localhost:8080
+      RUNNER_URL: http://runner:4000
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
+      OLLAMA_EMBED_MODEL: nomic-embed-text
+      PDF_DIR: /data/pdfs
+      CHAT_MIN_SCORE: 0.15
+      CHAT_MAX_CONTEXT_CHUNKS: 6
+      CHAT_MAX_CONTEXT_CHARS: 6000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./pdfs:/data/pdfs:ro
+    depends_on:
+      mongo:
+        condition: service_started
+      runner:
+        condition: service_started
+      ollama:
+        condition: service_started
+
+  runner:
+    build:
+      context: .
+      dockerfile: runner/Dockerfile
+    container_name: algo-runner
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: algo-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    command: ["serve"]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: algo-ollama-init
+    depends_on:
+      ollama:
+        condition: service_started
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      sleep 5;
+      ollama pull llama3.2:3b;
+      ollama pull nomic-embed-text;
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: algo-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo-data:
+  ollama-data:
